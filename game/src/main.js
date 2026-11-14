@@ -20,15 +20,15 @@ renderer.shadowMap.enabled = true;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(PALETTE.sky);
-scene.fog = new THREE.FogExp2(PALETTE.sky, 0.012);
+scene.fog = new THREE.FogExp2(PALETTE.sky, 0.006);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-// Lighting
-const hemiLight = new THREE.HemisphereLight(0xfff0e5, 0x302820, 0.6);
+// Lighting - brightened for clear screenshots
+const hemiLight = new THREE.HemisphereLight(0xfff5ee, 0x4a3b2c, 1.1);
 scene.add(hemiLight);
 
-const dirLight = new THREE.DirectionalLight(0xfffaed, 1.2);
+const dirLight = new THREE.DirectionalLight(0xfffaed, 2.2);
 dirLight.position.set(40, 80, 40);
 scene.add(dirLight);
 
@@ -60,25 +60,60 @@ if (shotMode) {
   } else if (shotMode === 'play') {
     state.phase = 'live';
     hud.hideOverlay();
-    player.spawn(new THREE.Vector3(0, 5, 40));
-    camera.rotation.set(-0.1, 0, 0);
+    player.spawn(new THREE.Vector3(0, 2, 35));
+    
+    // Run simulation steps to let bots move into view and spawn action/weapon viewmodel
+    const dt = 1 / 60;
+    for (let i = 0; i < 150; i++) {
+      // Find nearest bot to aim camera at
+      let nearestBot = null;
+      let minDist = Infinity;
+      for (const b of bots.bots) {
+        const d = b.position.distanceTo(player.position);
+        if (d < minDist) {
+          minDist = d;
+          nearestBot = b;
+        }
+      }
+      if (nearestBot) {
+        const targetDir = nearestBot.position.clone().sub(player.position).normalize();
+        player.yaw = Math.atan2(-targetDir.x, -targetDir.z);
+        player.pitch = Math.asin(targetDir.y) * 0.5;
+      }
+
+      if (i > 30 && i < 100 && (i % 15 === 0)) {
+        input.mouseLeftPressed = true;
+        if (weapons.canFire(input)) {
+          weapons.fire(audio);
+        }
+      } else {
+        input.mouseLeftPressed = false;
+      }
+
+      input.keys['KeyW'] = i < 80;
+      player.update(dt, input, audio);
+      weapons.update(dt, input, state, audio);
+      bots.update(dt, player.position, state, audio);
+      rounds.update(dt, audio);
+    }
   } else if (shotMode === 'buy') {
     state.phase = 'buy';
     hud.hideOverlay();
+    hud.update(state, weapons, player);
   } else if (shotMode === 'end') {
     state.phase = 'roundEnd';
     state.scoreTeamA = 5;
     state.scoreTeamB = 3;
     hud.showOverlay('ROUND 8 COMPLETE', 'Team A (CT) wins the round.', 'Next Round');
   }
-}
 
-// Render immediately and set __shotReady
-renderer.render(scene, camera);
-setTimeout(() => {
+  // Render twice, then set __shotReady if in shotMode
   renderer.render(scene, camera);
-  window.__shotReady = true;
-}, 200);
+  setTimeout(() => {
+    renderer.render(scene, camera);
+    window.__shotReady = true;
+  }, 250);
+}
 
 let lastTime = performance.now();
 const dt = 1 / 60;

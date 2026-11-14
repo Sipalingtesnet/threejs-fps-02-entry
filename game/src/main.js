@@ -61,18 +61,18 @@ if (shotMode) {
   } else if (shotMode === 'play') {
     state.phase = 'live';
     hud.hideOverlay();
-    player.spawn(new THREE.Vector3(0, 1.7, 15));
+    player.spawn(new THREE.Vector3(0, 0, 10));
     player.pitch = 0;
-    player.yaw = Math.PI; // facing forward down the mid lane (-Z)
+    player.yaw = 0; // facing forward down the mid lane (-Z)
 
-    // Explicitly place one enemy bot in the lane ahead (e.g. at 0, 0, -12)
+    // Explicitly place one enemy bot in the lane ahead at (0, 0, -8)
     if (bots.bots.length > 0) {
-      bots.bots[0].position.set(0, 1.0, -12);
+      bots.bots[0].position.set(0, 0, -6);
       bots.bots[0].alive = true;
       bots.bots[0].health = 100;
     }
 
-    // Run fixed-step simulation for ~120 steps before freezing
+    // Run fixed-step simulation for ~120 steps before freezing (skip bot movement AI so bot stays fixed in lane)
     const dt = 1 / 60;
     for (let i = 0; i < 120; i++) {
       input.mouseLeftDown = (i < 50);
@@ -82,13 +82,12 @@ if (shotMode) {
 
       player.update(dt, input, audio);
       weapons.update(dt, input, state, audio);
-      bots.update(dt, player.position, state, audio);
       rounds.update(dt, audio);
     }
 
     // Explicitly set camera rotation one more time and update HUD
     player.pitch = 0;
-    player.yaw = Math.PI;
+    player.yaw = 0;
     player.update(0, input, audio);
     hud.update(state, weapons, player);
   } else if (shotMode === 'buy') {

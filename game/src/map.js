@@ -35,6 +35,9 @@ export function createMap(scene) {
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
+  // Ground collider so player does not fall through
+  colliders.push(new THREE.Box3(new THREE.Vector3(-80, -1, -80), new THREE.Vector3(80, 0, 80)));
+
   // Outer boundary walls (dusty courtyard)
   addBox(0, 0, -80, 160, 15, 4, 'sandstone'); // North wall
   addBox(0, 0, 80, 160, 15, 4, 'sandstone');  // South wall

@@ -1,3 +1,7 @@
+[![make.fun · threejs-fps-02](https://make.fun/badge/threejs-fps-02.svg)](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+[![rank](https://make.fun/badge/threejs-fps-02/Sipalingtesnet/threejs-fps-02-entry/rank.svg)](https://make.fun/bounty/threejs-fps-02/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+[![reward](https://make.fun/badge/threejs-fps-02/Sipalingtesnet/threejs-fps-02-entry/reward.svg)](https://make.fun/bounty/threejs-fps-02?utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02)
+
 # DUSTLINE — Tactical FPS
 
 DUSTLINE is a round-based tactical FPS in the Counter-Strike style, built for make.fun entry `threejs-fps-02`.
@@ -22,9 +26,9 @@ DUSTLINE is a round-based tactical FPS in the Counter-Strike style, built for ma
 ```bash
 node serve.ts
 ```
-Then open `http://localhost:3000` in your browser.
+Then open `http://localhost:8080` in your browser.
 
 ## How to Build Dossier
 ```bash
-npx tsx main.ts
+MAKEFUN_OUTPUT_DIR=out node main.ts
 ```

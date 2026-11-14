@@ -22,9 +22,9 @@ export class RoundManager {
       const teamAAlive = this.bots.bots.filter(b => b.team === 'A' && b.alive).length;
 
       if (enemiesAlive === 0) {
-        this.endRound('Team A (CT) wins by elimination!', 'A');
+        this.endRound('Team A (Defenders) wins by elimination!', 'A');
       } else if (teamAAlive === 0 && this.player.position.y < -10 || this.state.health <= 0) {
-        this.endRound('Team B (T) wins by eliminating CTs!', 'B');
+        this.endRound('Team B (Attackers) wins by eliminating defenders!', 'B');
       } else if (this.state.timer <= 0) {
         this.endRound('Time expired! Defenders win.', 'A');
       }

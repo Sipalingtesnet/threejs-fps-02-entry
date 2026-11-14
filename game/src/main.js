@@ -37,6 +37,7 @@ const state = new GameState();
 const map = createMap(scene);
 const player = new Player(camera, map.colliders);
 const weapons = new WeaponSystem(camera);
+window.weapons = weapons;
 const bots = new BotManager(scene, map.colliders, map.waypoints, map.bombSites);
 const rounds = new RoundManager(state, bots, player);
 const audio = new AudioManager();
@@ -60,42 +61,36 @@ if (shotMode) {
   } else if (shotMode === 'play') {
     state.phase = 'live';
     hud.hideOverlay();
-    player.spawn(new THREE.Vector3(0, 2, 35));
-    
-    // Run simulation steps to let bots move into view and spawn action/weapon viewmodel
+    player.spawn(new THREE.Vector3(0, 1.7, 15));
+    player.pitch = 0;
+    player.yaw = Math.PI; // facing forward down the mid lane (-Z)
+
+    // Explicitly place one enemy bot in the lane ahead (e.g. at 0, 0, -12)
+    if (bots.bots.length > 0) {
+      bots.bots[0].position.set(0, 1.0, -12);
+      bots.bots[0].alive = true;
+      bots.bots[0].health = 100;
+    }
+
+    // Run fixed-step simulation for ~120 steps before freezing
     const dt = 1 / 60;
-    for (let i = 0; i < 150; i++) {
-      // Find nearest bot to aim camera at
-      let nearestBot = null;
-      let minDist = Infinity;
-      for (const b of bots.bots) {
-        const d = b.position.distanceTo(player.position);
-        if (d < minDist) {
-          minDist = d;
-          nearestBot = b;
-        }
-      }
-      if (nearestBot) {
-        const targetDir = nearestBot.position.clone().sub(player.position).normalize();
-        player.yaw = Math.atan2(-targetDir.x, -targetDir.z);
-        player.pitch = Math.asin(targetDir.y) * 0.5;
+    for (let i = 0; i < 120; i++) {
+      input.mouseLeftDown = (i < 50);
+      if (weapons.canFire(input)) {
+        weapons.fire(audio);
       }
 
-      if (i > 30 && i < 100 && (i % 15 === 0)) {
-        input.mouseLeftPressed = true;
-        if (weapons.canFire(input)) {
-          weapons.fire(audio);
-        }
-      } else {
-        input.mouseLeftPressed = false;
-      }
-
-      input.keys['KeyW'] = i < 80;
       player.update(dt, input, audio);
       weapons.update(dt, input, state, audio);
       bots.update(dt, player.position, state, audio);
       rounds.update(dt, audio);
     }
+
+    // Explicitly set camera rotation one more time and update HUD
+    player.pitch = 0;
+    player.yaw = Math.PI;
+    player.update(0, input, audio);
+    hud.update(state, weapons, player);
   } else if (shotMode === 'buy') {
     state.phase = 'buy';
     hud.hideOverlay();
@@ -104,7 +99,8 @@ if (shotMode) {
     state.phase = 'roundEnd';
     state.scoreTeamA = 5;
     state.scoreTeamB = 3;
-    hud.showOverlay('ROUND 8 COMPLETE', 'Team A (CT) wins the round.', 'Next Round');
+    hud.showOverlay('ROUND 8 COMPLETE', 'Team A (Defenders) wins the round.', 'Next Round');
+    hud.update(state, weapons, player);
   }
 
   // Render twice, then set __shotReady if in shotMode
